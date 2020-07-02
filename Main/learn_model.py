@@ -5,7 +5,7 @@ from GaitAnaylsisToolkit.LearningTools.Trainer import GMMTrainer
 from GaitAnaylsisToolkit.LearningTools.Runner import GMMRunner
 from matplotlib.patches import Polygon
 from matplotlib.collections import PatchCollection
-
+from scipy.signal import resample
 import matplotlib
 
 
@@ -32,43 +32,42 @@ def plot_gmm(Mu, Sigma, ax=None):
 
 
 
-nb_states = 10
+nb_states = 15
 files = data.files
 sides = data.sides
 frames = data.frames
 hills = utilities.get_index(frames, files, sides)
 pathsZ, pathsY = utilities.make_toe(files, hills, sides)
 
-trainer = GMMTrainer.GMMTrainer(pathsZ, "plotGMM", 15, 0.01)
-trainer.train()
-runner = GMMRunner.GMMRunner("plotGMM.pickle")
+trainerZ = GMMTrainer.GMMTrainer(pathsZ, "trainZ", 15, 0.01)
+trainerZ.train()
+runnerZ = GMMRunner.GMMRunner("trainZ.pickle")
+
+
+trainerY = GMMTrainer.GMMTrainer(pathsY, "trainY", 15, 0.01)
+trainerY.train()
+runnerY = GMMRunner.GMMRunner("trainY.pickle")
+
+
+sample_size = 10000
+for p in pathsZ:
+    if len(p) < sample_size:
+        sample_size = len(p)
 
 fig0, ax0 = plt.subplots(1)
 fig1, ax1 = plt.subplots(1)
+sIn = runnerZ.get_sIn()
+for i in range(len(trainerY.data["demos"])):
+    ax1.plot(sIn, np.flip(trainerY.data["demos"][i].flatten()))
+    ax0.plot(sIn, np.flip(trainerZ.data["demos"][i].flatten()))
 
-sIn = runner.get_sIn()
-tau = runner.get_tau()
-l = runner.get_length()
-motion = runner.get_motion()
-currF = runner.get_expData()[0].tolist()
 
-# plot the forcing functions
-p = plot_gmm(Mu=runner.get_mu()[:2, :], Sigma=runner.get_sigma()[:, :2, :2], ax=ax0)
-for i in range(len(files)):
-    ax0.plot(sIn, tau[1, i * l: (i + 1) * l].tolist(), color="b")
-    ax1.plot(sIn, np.flip(motion[i]), 'b')
-
-ax0.plot(sIn, currF, color="r", linewidth=2)
-ax0.set_xlabel('S')
-ax0.set_ylabel('F')
-ax0.set_title("Forcing Function")
-
-path = runner.run()
-ax1.plot(sIn, np.flip(path), "k")
-ax1.set_xlabel('s')
-ax1.set_ylabel('angle')
-ax1.set_title("Learned Trajectory")
-ax1.legend(["EX1", "EX2", "Replicated"])
+path = runnerZ.run()
+ax0.plot(sIn, np.flip(path), "k", linewidth=5)
+#
+# path = runnerY.run()
+# path = runnerY.run()
+# ax1.plot( np.flip(path), "k")
 
 plt.show()
 
