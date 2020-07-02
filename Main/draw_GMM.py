@@ -31,11 +31,10 @@ def plot_gmm(Mu, Sigma, ax=None):
     return p
 
 
-file1 = "/home/nathaniel/AIM_GaitData/Gaiting_stairs/subject_08/subject_08_stair_config1_00.csv"
-file2 = "/home/nathaniel/AIM_GaitData/Gaiting_stairs/subject_08/subject_08_stair_config1_01.csv"
-files = [file1, file2]
+
 nb_states = 10
-sides = ["R", "R"]
+files = data.files
+sides = data.sides
 frames = data.frames
 hills = utilities.get_index(frames, files, sides)
 pathsZ, pathsY = utilities.make_toe(files, hills, sides)
@@ -43,7 +42,9 @@ pathsZ, pathsY = utilities.make_toe(files, hills, sides)
 trainer = GMMTrainer.GMMTrainer(pathsZ, "plotGMM", 10, 0.01)
 trainer.train()
 runner = GMMRunner.GMMRunner("plotGMM.pickle")
-fig, ax = plt.subplots(2)
+
+fig0, ax0 = plt.subplots(1)
+fig1, ax1 = plt.subplots(1)
 
 sIn = runner.get_sIn()
 tau = runner.get_tau()
@@ -52,26 +53,26 @@ motion = runner.get_motion()
 currF = runner.get_expData()[0].tolist()
 
 # plot the forcing functions
-p = plot_gmm(Mu=runner.get_mu()[:2, :], Sigma=runner.get_sigma()[:, :2, :2], ax=ax[0])
-for i in range(2):
-    ax[0].plot(sIn, tau[1, i * l: (i + 1) * l].tolist(), color="b")
+p = plot_gmm(Mu=runner.get_mu()[:2, :], Sigma=runner.get_sigma()[:, :2, :2], ax=ax0)
+for i in range(len(files)):
+    ax0.plot(sIn, tau[1, i * l: (i + 1) * l].tolist(), color="b")
+    ax1.plot(sIn, np.flip(motion[i]), 'b')
 
-ax[0].plot(sIn, currF, color="r", linewidth=2)
-ax[0].set_xlabel('S')
-ax[0].set_ylabel('F')
-ax[0].set_title("Forcing Function")
-
-ax[1].plot(sIn, np.flip(motion[0]), 'b')
-ax[1].plot(sIn, np.flip(motion[1]), 'b')
-#
-# path = runner.run()
-# ax[1].plot(sIn, np.flip(path),"r")
+ax0.plot(sIn, currF, color="r", linewidth=2)
+ax0.set_xlabel('S')
+ax0.set_ylabel('F')
+ax0.set_title("Forcing Function")
 
 path = runner.run()
-ax[1].plot(sIn, np.flip(path), "k")
+# ax1.plot(sIn, np.flip(motion[0]), 'b')
+# ax1.plot(sIn, np.flip(motion[1]), 'b')
+ax1.plot(sIn, np.flip(path), "k")
+ax1.set_xlabel('s')
+ax1.set_ylabel('angle')
+ax1.set_title("Learned Trajectory")
+ax1.legend(["EX1", "EX2", "Replicated"])
 
-ax[1].set_xlabel('s')
-ax[1].set_ylabel('angle')
-ax[1].set_title("Learned Trajectory")
-ax[1].legend(["EX1", "EX2", "Replicated"])
 plt.show()
+
+
+
