@@ -48,7 +48,7 @@ def calculate_imitation_metric_1(demos, imitation):
         t.append(t[i - 1] - alpha * t[i - 1] * 0.01)  # Update of decay term (ds/dt=-alpha s) )
     t = np.array(t)
 
-    for m in xrange(M):
+    for m in range(M):
         d, cost_matrix, acc_cost_matrix, path = dtw(imitation, demos[m], dist=manhattan_distance)
         data_warp = [demos[m][path[1]][:imitation.shape[0]]]
         coefs = poly.polyfit(t, data_warp[0], 20)

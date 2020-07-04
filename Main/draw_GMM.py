@@ -39,7 +39,7 @@ frames = data.frames
 hills = utilities.get_index(frames, files, sides)
 pathsZ, pathsY = utilities.make_toe(files, hills, sides)
 
-trainer = GMMTrainer.GMMTrainer(demo=[pathsZ], file_name="plotGMM",  n_rf=15, dt=0.01)
+trainer = GMMTrainer.GMMTrainer(demo=pathsZ, file_name="plotGMM",  n_rf=15, dt=0.01)
 trainer.train()
 runner = GMMRunner.GMMRunner("plotGMM.pickle")
 
