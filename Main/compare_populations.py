@@ -1,12 +1,40 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from utilities import data, utilities
+from dtw import dtw
 from GaitAnaylsisToolkit.LearningTools.Trainer import GMMTrainer
 from GaitAnaylsisToolkit.LearningTools.Runner import GMMRunner
 from matplotlib.patches import Polygon
 from matplotlib.collections import PatchCollection
 from scipy.signal import resample
 import matplotlib
+import numpy.polynomial.polynomial as poly
+
+def calculate_imitation_metric_1(demos, imitation):
+    M = len(demos)
+    T = len(imitation)
+    imitation = np.array(imitation)
+    metric = 0.0
+    paths = []
+    t = []
+    t.append(1.0)
+    alpha = 1.0
+    manhattan_distance = lambda x, y: np.abs(x - y)
+    for i in range(1, T):
+        t.append(t[i - 1] - alpha * t[i - 1] * 0.01)  # Update of decay term (ds/dt=-alpha s) )
+    t = np.array(t)
+
+    for m in range(M):
+        d, cost_matrix, acc_cost_matrix, path = dtw(imitation, demos[m], dist=manhattan_distance)
+        data_warp = [demos[m][path[1]][:imitation.shape[0]]]
+        coefs = poly.polyfit(t, data_warp[0], 20)
+        ffit = poly.Polynomial(coefs)
+        y_fit = ffit(t)
+        paths.append(y_fit)
+        metric += np.sum(np.sqrt( np.power(y_fit - imitation.flatten(), 2)))
+
+
+    return paths, metric/(M*T)
 
 
 def plot_gmm(Mu, Sigma, ax=None):
@@ -60,13 +88,17 @@ runnerZ2 = GMMRunner.GMMRunner("trainZ_single.pickle")
 # trainerY2.train()
 runnerY2 = GMMRunner.GMMRunner("trainY_single.pickle")
 
+pathY2 = runnerY2.run()
+pathZ2 = runnerZ2.run()
 
+pathY1 = runnerY1.run()
+pathZ1 = runnerZ1.run()
 
+repoduction_pathY1, metricY1 = calculate_imitation_metric_1(np.array([pathsY[0]]), pathY1 )
+repoduction_pathY2, metricY2 = calculate_imitation_metric_1(np.array([pathsY[0]]), pathY2 )
 
-sample_size = 10000
-for p in pathsZ:
-    if len(p) < sample_size:
-        sample_size = len(p)
+repoduction_pathZ1, metricZ1 = calculate_imitation_metric_1(np.array([pathsZ[0]]), pathZ1 )
+repoduction_pathZ2, metricZ2 = calculate_imitation_metric_1(np.array([pathsZ[0]]), pathZ2 )
 
 fig0, ax0 = plt.subplots(1)
 fig1, ax1 = plt.subplots(1)
@@ -82,17 +114,14 @@ runnerZ1.update_start(int(round(pathsZ[0][0])))
 runnerY1.update_goal(int(round(pathsY[0][-1])))
 runnerZ1.update_goal(int(round(pathsZ[0][-1])))
 
+ax0.plot(repoduction_pathZ2[0] )
+ax1.plot(repoduction_pathY2[0])
 
-pathX2 = runnerY2.run()
-pathZ2 = runnerZ2.run()
+ax0.plot(pathZ1)
+#ax0.plot(pathZ2)
 
-pathX1 = runnerY1.run()
-pathZ1 = runnerZ1.run()
-
-ax0.plot(pathX2)
-ax1.plot(pathZ2)
-ax0.plot(pathX1)
-ax1.plot(pathZ1)
+ax1.plot(pathY1)
+#ax1.plot(pathY2)
 
 
 plt.show()
