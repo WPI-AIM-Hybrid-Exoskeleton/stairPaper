@@ -58,16 +58,14 @@ fig0, ax0 = plt.subplots(1)
 fig1, ax1 = plt.subplots(1)
 sIn = runnerZ.get_sIn()
 for i in range(len(trainerY.data["demos"])):
-    ax1.plot(sIn, np.flip(trainerY.data["demos"][i].flatten()))
-    ax0.plot(sIn, np.flip(trainerZ.data["demos"][i].flatten()))
+    ax1.plot(sIn, np.flip(trainerY.data["demos"][i]))
+    ax0.plot(sIn, np.flip(trainerZ.data["demos"][i]))
 
 
 path = runnerZ.run()
 ax0.plot(sIn, np.flip(path), "k", linewidth=5)
-#
-# path = runnerY.run()
-# path = runnerY.run()
-# ax1.plot( np.flip(path), "k")
+path = runnerY.run()
+ax1.plot(sIn, np.flip(path), "k", linewidth=5)
 
 plt.show()
 
