@@ -24,6 +24,6 @@ file01 = "/home/nathaniel/AIM_GaitData/Gaiting_stairs/subject_01/subject_01 stai
 file00 = "/home/nathaniel/AIM_GaitData/Gaiting_stairs/subject_00/subject_00 stairconfig1_00.csv"
 
 
-
-files = [ file00, file01, file02, file03, file05, file06, file07, file09]
+leg = [ "file00", "file01", "file02", "file03", "file05",  "file07", "file09"]
+files = [ file00, file01, file02, file03, file05,  file07, file09]
 sides = [ "R"] *len(files)
